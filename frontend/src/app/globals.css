@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #030712;
+  --foreground: #f8fafc;
+  --card: rgba(12, 18, 36, 0.8);
+  --card-border: rgba(148, 163, 184, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.25), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.25), transparent 45%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.card-surface {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+}
+
+.glowing-border {
+  position: relative;
+}
+
+.glowing-border::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 24px;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(14, 165, 233, 0.5), rgba(236, 72, 153, 0.5));
+  mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 0.25rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gradient-text {
+  background: linear-gradient(120deg, #e879f9, #38bdf8);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@keyframes modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-modal-slide-up {
+  animation: modal-slide-up 0.3s ease-out;
+}
