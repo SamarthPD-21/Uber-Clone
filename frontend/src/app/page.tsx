@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest, API_BASE_URL } from "@/lib/api";
 import type { AuthResponse, RideDto, UserRole } from "@/lib/types";
+import { formatRelativeTime, formatDateTime, calculateDuration } from "@/lib/utils";
 
 type AuthMode = "register" | "login";
 
@@ -70,11 +71,11 @@ function AuthModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="card-surface w-full max-w-md p-8 relative animate-modal-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+      <div className="card-surface w-full max-w-md p-8 relative animate-modal-slide-up shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-all duration-200 hover:rotate-90"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -82,17 +83,19 @@ function AuthModal({
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome to RideShare</h2>
+          <h2 className="text-3xl font-bold text-white mb-2 gradient-text">Welcome to RideShare</h2>
           <p className="text-slate-400 text-sm">Sign in or create an account to get started</p>
         </div>
 
-        <div className="flex gap-2 rounded-full bg-white/5 p-1 mb-6">
+        <div className="flex gap-2 rounded-full bg-white/[0.03] border border-white/10 p-1.5 mb-6">
           {["login", "register"].map((mode) => (
             <button
               key={mode}
               onClick={() => setAuthMode(mode as AuthMode)}
-              className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-                authMode === mode ? "bg-white text-slate-900" : "text-slate-300"
+              className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                authMode === mode 
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/20" 
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
               }`}
             >
               {mode === "login" ? "Sign In" : "Sign Up"}
@@ -114,7 +117,7 @@ function AuthModal({
                 type="text"
                 value={loginForm.username}
                 onChange={(e) => setLoginForm((prev) => ({ ...prev, username: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                 placeholder="Enter your username"
                 required
               />
@@ -125,7 +128,7 @@ function AuthModal({
                 type="password"
                 value={loginForm.password}
                 onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                 placeholder="Enter your password"
                 required
               />
@@ -146,7 +149,7 @@ function AuthModal({
                 type="text"
                 value={registerForm.username}
                 onChange={(e) => setRegisterForm((prev) => ({ ...prev, username: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                 placeholder="Choose a username"
                 required
               />
@@ -157,7 +160,7 @@ function AuthModal({
                 type="password"
                 value={registerForm.password}
                 onChange={(e) => setRegisterForm((prev) => ({ ...prev, password: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                 placeholder="Choose a password"
                 required
               />
@@ -172,10 +175,10 @@ function AuthModal({
                   <button
                     key={option.role}
                     type="button"
-                    className={`rounded-xl border px-4 py-3 text-left transition ${
+                    className={`rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
                       registerForm.role === option.role
-                        ? "border-sky-400/70 bg-sky-500/10 text-white"
-                        : "border-white/10 text-slate-300 hover:border-white/20"
+                        ? "border-blue-400/60 bg-blue-500/15 text-white shadow-lg shadow-blue-500/20 scale-105"
+                        : "border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5"
                     }`}
                     onClick={() => setRegisterForm((prev) => ({ ...prev, role: option.role }))}
                   >
@@ -188,7 +191,7 @@ function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-purple-600 px-4 py-3 text-base font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+              className="w-full rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3 text-base font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
@@ -201,12 +204,13 @@ function AuthModal({
 
 export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [rideForm, setRideForm] = useState({ pickupLocation: "", dropLocation: "" });
+  const [rideForm, setRideForm] = useState({ pickupLocation: "", dropLocation: "", distanceKm: "" });
   const [token, setToken] = useState<string | null>(null);
   const [sessionUser, setSessionUser] = useState<{ username: string; role: UserRole } | null>(null);
   const [userRides, setUserRides] = useState<RideDto[]>([]);
   const [pendingRides, setPendingRides] = useState<RideDto[]>([]);
   const [acceptedByDriver, setAcceptedByDriver] = useState<RideDto[]>([]);
+  const [completedRides, setCompletedRides] = useState<RideDto[]>([]);
   const [statusBanner, setStatusBanner] = useState<StatusBanner | null>(null);
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
 
@@ -249,8 +253,9 @@ export default function Home() {
   const refreshUserRides = useCallback(async () => {
     if (!token) return;
     try {
-      const rides = await apiRequest<RideDto[]>("/api/v1/user/rides", { token });
-      setUserRides(rides);
+      const rides = await apiRequest<RideDto[]>("/api/rides", { token });
+      // Sort by most recent first (assuming newer rides have higher IDs or add timestamp)
+      setUserRides(rides.reverse());
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load rides";
       showBanner("error", message);
@@ -260,10 +265,25 @@ export default function Home() {
   const refreshPendingRides = useCallback(async () => {
     if (!token) return;
     try {
-      const rides = await apiRequest<RideDto[]>("/api/v1/driver/rides/requests", { token });
-      setPendingRides(rides);
+      const rides = await apiRequest<RideDto[]>("/api/rides/pending", { token });
+      // Sort by most recent first
+      setPendingRides(rides.reverse());
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load requests";
+      showBanner("error", message);
+    }
+  }, [token]);
+
+  const refreshDriverRides = useCallback(async () => {
+    if (!token) return;
+    try {
+      const rides = await apiRequest<RideDto[]>("/api/rides/driver/my-rides", { token });
+      const accepted = rides.filter(ride => ride.status === "ACCEPTED");
+      const completed = rides.filter(ride => ride.status === "COMPLETED");
+      setAcceptedByDriver(accepted);
+      setCompletedRides(completed);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load rides";
       showBanner("error", message);
     }
   }, [token]);
@@ -274,19 +294,24 @@ export default function Home() {
       refreshUserRides();
     } else if (sessionUser.role === "ROLE_DRIVER") {
       refreshPendingRides();
+      refreshDriverRides();
     }
-  }, [token, sessionUser, refreshPendingRides, refreshUserRides]);
+  }, [token, sessionUser, refreshPendingRides, refreshUserRides, refreshDriverRides]);
 
   const handleCreateRide = async () => {
     if (!token) return;
     setLoadingKey("create-ride");
     try {
-      await apiRequest<RideDto>("/api/v1/rides", {
+      await apiRequest<RideDto>("/api/rides", {
         method: "POST",
-        body: rideForm,
+        body: {
+          pickupLocation: rideForm.pickupLocation,
+          dropLocation: rideForm.dropLocation,
+          distanceKm: parseFloat(rideForm.distanceKm),
+        },
         token,
       });
-      setRideForm({ pickupLocation: "", dropLocation: "" });
+      setRideForm({ pickupLocation: "", dropLocation: "", distanceKm: "" });
       await refreshUserRides();
       showBanner("success", "Ride requested successfully! Waiting for a driver.");
     } catch (error) {
@@ -301,13 +326,13 @@ export default function Home() {
     if (!token) return;
     setLoadingKey(`accept-${rideId}`);
     try {
-      const ride = await apiRequest<RideDto>(`/api/v1/driver/rides/${rideId}/accept`, {
+      const ride = await apiRequest<RideDto>(`/api/rides/accept/${rideId}`, {
         method: "POST",
         token,
       });
-      setAcceptedByDriver((prev) => [ride, ...prev.filter((r) => r.id !== ride.id)]);
       await refreshPendingRides();
-      showBanner("success", `Ride accepted! You're now assigned to this trip.`);
+      await refreshDriverRides();
+      showBanner("success", `Ride accepted! You'll earn ₹${ride.driverRevenue?.toFixed(2) || '0'}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to accept ride";
       showBanner("error", message);
@@ -320,17 +345,19 @@ export default function Home() {
     if (!token) return;
     setLoadingKey(`complete-${rideId}`);
     try {
-      const ride = await apiRequest<RideDto>(`/api/v1/rides/${rideId}/complete`, {
+      const ride = await apiRequest<RideDto>(`/api/rides/complete/${rideId}`, {
         method: "POST",
         token,
       });
       if (isPassenger) {
         await refreshUserRides();
+        showBanner("success", `Ride completed successfully!`);
       }
       if (isDriver) {
-        setAcceptedByDriver((prev) => prev.filter((r) => r.id !== ride.id));
+        await refreshDriverRides();
+        const earnings = ride.driverRevenue || 0;
+        showBanner("success", `Ride completed! You earned ₹${earnings.toFixed(2)} 💰`);
       }
-      showBanner("success", `Ride completed successfully!`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to complete ride";
       showBanner("error", message);
@@ -345,6 +372,7 @@ export default function Home() {
     setUserRides([]);
     setPendingRides([]);
     setAcceptedByDriver([]);
+    setCompletedRides([]);
     showBanner("success", "Signed out successfully.");
   };
 
@@ -362,9 +390,10 @@ export default function Home() {
         <div className="mx-auto max-w-7xl space-y-8">
           {/* Header */}
           <header className="card-surface glowing-border relative overflow-hidden px-8 py-10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
               <div>
-                <div className="chip mb-4 inline-flex bg-white/5 text-xs tracking-[0.3em] text-slate-200">
+                <div className="chip mb-4 inline-flex text-xs tracking-[0.3em] text-slate-300">
                   Spring Boot · MongoDB · JWT · Validation
                 </div>
                 <h1 className="text-4xl font-bold leading-tight text-white md:text-5xl">
@@ -377,19 +406,19 @@ export default function Home() {
               
               <div className="flex flex-col gap-3">
                 {sessionUser ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 min-w-[240px]">
+                  <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-5 min-w-[240px] backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs uppercase tracking-wider text-slate-400">Signed in as</span>
+                      <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Signed in as</span>
                       <button
                         onClick={resetSession}
-                        className="text-xs text-slate-400 hover:text-white transition"
+                        className="text-xs text-slate-400 hover:text-rose-400 transition-colors duration-200 font-medium"
                       >
                         Sign out
                       </button>
                     </div>
-                    <p className="text-xl font-bold text-white">{sessionUser.username}</p>
+                    <p className="text-xl font-bold text-white mb-3">{sessionUser.username}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">
+                      <span className="rounded-full bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30 px-3 py-1.5 text-xs font-semibold text-emerald-200">
                         {sessionUser.role === "ROLE_USER" ? "🚗 Passenger" : "👨‍✈️ Driver"}
                       </span>
                     </div>
@@ -407,10 +436,10 @@ export default function Home() {
 
             {statusBanner && (
               <div
-                className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${
+                className={`mt-6 rounded-2xl border px-5 py-3.5 text-sm font-medium backdrop-blur-sm ${
                   statusBanner.tone === "success"
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-                    : "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                    ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/15 to-green-500/10 text-emerald-200 shadow-lg shadow-emerald-500/10"
+                    : "border-rose-500/40 bg-gradient-to-r from-rose-500/15 to-red-500/10 text-rose-200 shadow-lg shadow-rose-500/10"
                 }`}
               >
                 {statusBanner.message}
@@ -451,29 +480,54 @@ export default function Home() {
 
                     <div className="space-y-4">
                       <div>
-                        <label className="text-xs uppercase tracking-wider text-slate-400">Pickup Location</label>
+                        <label className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Pickup Location</label>
                         <input
                           type="text"
                           value={rideForm.pickupLocation}
                           onChange={(e) => setRideForm((prev) => ({ ...prev, pickupLocation: e.target.value }))}
-                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                           placeholder="e.g., Koramangala"
                         />
                       </div>
                       <div>
-                        <label className="text-xs uppercase tracking-wider text-slate-400">Drop Location</label>
+                        <label className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Drop Location</label>
                         <input
                           type="text"
                           value={rideForm.dropLocation}
                           onChange={(e) => setRideForm((prev) => ({ ...prev, dropLocation: e.target.value }))}
-                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-sky-400/50 focus:outline-none"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
                           placeholder="e.g., Indiranagar"
                         />
+                      </div>
+                      <div>
+                        <label className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Distance (km)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0.1"
+                          value={rideForm.distanceKm}
+                          onChange={(e) => setRideForm((prev) => ({ ...prev, distanceKm: e.target.value }))}
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400/60 focus:bg-white/[0.05] focus:outline-none transition-all duration-200"
+                          placeholder="e.g., 5.5"
+                        />
+                        {rideForm.distanceKm && parseFloat(rideForm.distanceKm) > 0 && (
+                          <div className="mt-3 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/15 to-green-500/10 p-4 backdrop-blur-sm shadow-lg shadow-emerald-500/10">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-slate-300 font-medium">Estimated Fare:</span>
+                              <span className="text-2xl font-bold text-emerald-200">
+                                ₹{(50 + parseFloat(rideForm.distanceKm) * 10).toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="mt-2 text-xs text-slate-400 font-medium">
+                              Base ₹50 + ₹10/km × {parseFloat(rideForm.distanceKm).toFixed(1)} km
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={handleCreateRide}
                         disabled={loadingKey === "create-ride"}
-                        className="w-full rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-base font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+                        className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3.5 text-base font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loadingKey === "create-ride" ? "Requesting..." : "Request Ride"}
                       </button>
@@ -486,7 +540,7 @@ export default function Home() {
                         <div className="text-3xl">📋</div>
                         <div>
                           <p className="text-sm uppercase tracking-[0.3em] text-slate-400">My Rides</p>
-                          <h2 className="text-2xl font-semibold text-white">Trip History</h2>
+                          <h2 className="text-2xl font-semibold text-white">All Trips</h2>
                         </div>
                       </div>
                       <button
@@ -496,6 +550,31 @@ export default function Home() {
                         🔄 Refresh
                       </button>
                     </div>
+
+                    {userRides.length > 0 && (
+                      <div className="mb-4 rounded-xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-blue-500/20 p-5 backdrop-blur-sm shadow-lg">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">Requested</p>
+                            <p className="text-2xl font-bold text-amber-200">
+                              {userRides.filter(r => r.status === "REQUESTED").length}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">In Progress</p>
+                            <p className="text-2xl font-bold text-sky-200">
+                              {userRides.filter(r => r.status === "ACCEPTED").length}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-1">Completed</p>
+                            <p className="text-2xl font-bold text-emerald-200">
+                              {userRides.filter(r => r.status === "COMPLETED").length}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                       {userRides.length === 0 ? (
@@ -521,14 +600,37 @@ export default function Home() {
                               >
                                 {ride.status}
                               </span>
+                              {ride.fare && (
+                                <span className="text-lg font-bold text-emerald-200">₹{ride.fare.toFixed(2)}</span>
+                              )}
                             </div>
                             <p className="text-base font-semibold text-white mb-1">
                               {ride.pickupLocation} → {ride.dropLocation}
                             </p>
+                            {ride.distanceKm && (
+                              <p className="text-xs text-slate-400">Distance: {ride.distanceKm.toFixed(1)} km</p>
+                            )}
                             {ride.driverUsername && (
                               <p className="text-xs text-slate-400">Driver: {ride.driverUsername}</p>
                             )}
-                            <p className="text-xs text-slate-500 mt-2">ID: {ride.id.slice(0, 8)}...</p>
+                            <div className="mt-3 flex items-center justify-between text-xs">
+                              <div className="space-y-0.5">
+                                <p className="text-slate-500">
+                                  <span className="text-slate-400">Requested:</span> {formatRelativeTime(ride.createdAt)}
+                                </p>
+                                {ride.acceptedAt && (
+                                  <p className="text-slate-500">
+                                    <span className="text-sky-400">Accepted:</span> {formatRelativeTime(ride.acceptedAt)}
+                                  </p>
+                                )}
+                                {ride.completedAt && (
+                                  <p className="text-slate-500">
+                                    <span className="text-emerald-400">Completed:</span> {formatRelativeTime(ride.completedAt)}
+                                    {ride.acceptedAt && <span className="ml-2 text-slate-600">({calculateDuration(ride.acceptedAt, ride.completedAt)})</span>}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
                             {ride.status === "ACCEPTED" && (
                               <div className="mt-3 flex justify-end">
                                 <button
@@ -581,21 +683,40 @@ export default function Home() {
                             className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 hover:bg-white/10 transition"
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <p className="text-base font-semibold text-white">
-                                {ride.pickupLocation} → {ride.dropLocation}
-                              </p>
-                              <button
-                                onClick={() => handleAcceptRide(ride.id)}
-                                disabled={loadingKey === `accept-${ride.id}`}
-                                className="rounded-full bg-sky-500/20 px-4 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition disabled:opacity-60"
-                              >
-                                {loadingKey === `accept-${ride.id}` ? "Accepting..." : "Accept"}
-                              </button>
+                              <div>
+                                <p className="text-base font-semibold text-white">
+                                  {ride.pickupLocation} → {ride.dropLocation}
+                                </p>
+                                {ride.distanceKm && (
+                                  <p className="text-xs text-slate-400 mt-1">Distance: {ride.distanceKm.toFixed(1)} km</p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {ride.fare && ride.driverRevenue && (
+                                  <div className="mb-2">
+                                    <p className="text-xs text-slate-400">You earn</p>
+                                    <p className="text-lg font-bold text-emerald-200">₹{ride.driverRevenue.toFixed(2)}</p>
+                                    <p className="text-xs text-slate-500">of ₹{ride.fare.toFixed(2)}</p>
+                                  </div>
+                                )}
+                                <button
+                                  onClick={() => handleAcceptRide(ride.id)}
+                                  disabled={loadingKey === `accept-${ride.id}`}
+                                  className="rounded-full bg-sky-500/20 px-4 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition disabled:opacity-60"
+                                >
+                                  {loadingKey === `accept-${ride.id}` ? "Accepting..." : "Accept"}
+                                </button>
+                              </div>
                             </div>
                             {ride.passengerUsername && (
                               <p className="text-xs text-slate-400">Passenger: {ride.passengerUsername}</p>
                             )}
-                            <p className="text-xs text-slate-500 mt-2">ID: {ride.id.slice(0, 8)}...</p>
+                            <div className="mt-2 flex items-center justify-between">
+                              <p className="text-xs text-slate-500">
+                                <span className="text-slate-400">Requested:</span> {formatRelativeTime(ride.createdAt)}
+                              </p>
+                              <p className="text-xs text-slate-600">ID: {ride.id.slice(0, 8)}...</p>
+                            </div>
                           </article>
                         ))
                       )}
@@ -603,11 +724,13 @@ export default function Home() {
                   </section>
 
                   <section className="card-surface px-6 py-8">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="text-3xl">✅</div>
-                      <div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Active Rides</p>
-                        <h2 className="text-2xl font-semibold text-white">My Accepted Trips</h2>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">✅</div>
+                        <div>
+                          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Active Rides</p>
+                          <h2 className="text-2xl font-semibold text-white">My Accepted Trips</h2>
+                        </div>
                       </div>
                     </div>
 
@@ -629,7 +752,16 @@ export default function Home() {
                             {ride.passengerUsername && (
                               <p className="text-xs text-slate-400">Passenger: {ride.passengerUsername}</p>
                             )}
-                            <p className="text-xs text-slate-500 mt-2">ID: {ride.id.slice(0, 8)}...</p>
+                            <div className="mt-2 space-y-0.5 text-xs">
+                              <p className="text-slate-500">
+                                <span className="text-slate-400">Requested:</span> {formatRelativeTime(ride.createdAt)}
+                              </p>
+                              {ride.acceptedAt && (
+                                <p className="text-slate-500">
+                                  <span className="text-sky-400">Accepted:</span> {formatRelativeTime(ride.acceptedAt)}
+                                </p>
+                              )}
+                            </div>
                             <div className="mt-3 flex justify-end">
                               <button
                                 onClick={() => handleCompleteRide(ride.id)}
@@ -638,6 +770,128 @@ export default function Home() {
                               >
                                 {loadingKey === `complete-${ride.id}` ? "Completing..." : "Complete Ride"}
                               </button>
+                            </div>
+                          </article>
+                        ))
+                      )}
+                    </div>
+                  </section>
+
+                  {/* Driver Earnings Section */}
+                  <section className="card-surface px-6 py-8 lg:col-span-2">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">💰</div>
+                        <div>
+                          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Earnings</p>
+                          <h2 className="text-2xl font-semibold text-white">Completed Rides & Income</h2>
+                        </div>
+                      </div>
+                      <button
+                        onClick={refreshDriverRides}
+                        className="text-sm text-slate-300 hover:text-white transition"
+                      >
+                        🔄 Refresh
+                      </button>
+                    </div>
+
+                    {completedRides.length > 0 && (
+                      <div className="mb-6 rounded-xl bg-gradient-to-br from-emerald-500/12 via-green-500/10 to-teal-500/10 border border-emerald-500/25 p-6 backdrop-blur-sm shadow-xl shadow-emerald-500/10">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                          <div>
+                            <p className="text-xs text-slate-400 mb-2">Total Rides</p>
+                            <p className="text-3xl font-bold text-white">{completedRides.length}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-2">Total Earned</p>
+                            <p className="text-3xl font-bold text-emerald-200">
+                              ₹{completedRides.reduce((sum, ride) => sum + (ride.driverRevenue || 0), 0).toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-2">Avg per Ride</p>
+                            <p className="text-3xl font-bold text-sky-200">
+                              ₹{(completedRides.reduce((sum, ride) => sum + (ride.driverRevenue || 0), 0) / completedRides.length).toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-400 mb-2">Total Distance</p>
+                            <p className="text-3xl font-bold text-purple-200">
+                              {completedRides.reduce((sum, ride) => sum + (ride.distanceKm || 0), 0).toFixed(1)} km
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                      {completedRides.length === 0 ? (
+                        <div className="text-center py-8 text-slate-400">
+                          <div className="text-4xl mb-3">🎯</div>
+                          <p>No completed rides yet. Accept and complete rides to start earning!</p>
+                        </div>
+                      ) : (
+                        completedRides.map((ride) => (
+                          <article
+                            key={ride.id}
+                            className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/[0.08] to-green-500/[0.05] px-4 py-4 hover:border-emerald-500/40 hover:bg-gradient-to-br hover:from-emerald-500/[0.12] hover:to-green-500/[0.08] transition-all duration-300 backdrop-blur-sm shadow-lg shadow-emerald-500/5"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">
+                                    ✓ COMPLETED
+                                  </span>
+                                </div>
+                                <p className="text-base font-semibold text-white mb-1">
+                                  {ride.pickupLocation} → {ride.dropLocation}
+                                </p>
+                                {ride.distanceKm && (
+                                  <p className="text-xs text-slate-400">Distance: {ride.distanceKm.toFixed(1)} km</p>
+                                )}
+                                {ride.passengerUsername && (
+                                  <p className="text-xs text-slate-400">Passenger: {ride.passengerUsername}</p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-slate-400 mb-1">You Earned</p>
+                                <p className="text-2xl font-bold text-emerald-200">
+                                  ₹{(ride.driverRevenue || 0).toFixed(2)}
+                                </p>
+                                {ride.fare && ride.companyRevenue && (
+                                  <div className="mt-2 text-xs text-slate-500">
+                                    <p>Total: ₹{ride.fare.toFixed(2)}</p>
+                                    <p>Platform: ₹{ride.companyRevenue.toFixed(2)}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-emerald-500/20">
+                              <div className="grid grid-cols-3 gap-3 text-xs">
+                                <div>
+                                  <p className="text-slate-500 mb-0.5">Requested</p>
+                                  <p className="text-slate-400 font-medium">{formatRelativeTime(ride.createdAt)}</p>
+                                </div>
+                                {ride.acceptedAt && (
+                                  <div>
+                                    <p className="text-slate-500 mb-0.5">Accepted</p>
+                                    <p className="text-sky-400 font-medium">{formatRelativeTime(ride.acceptedAt)}</p>
+                                  </div>
+                                )}
+                                {ride.completedAt && (
+                                  <div>
+                                    <p className="text-slate-500 mb-0.5">Completed</p>
+                                    <p className="text-emerald-400 font-medium">{formatRelativeTime(ride.completedAt)}</p>
+                                  </div>
+                                )}
+                              </div>
+                              {ride.acceptedAt && ride.completedAt && (
+                                <div className="mt-2 text-center">
+                                  <p className="text-xs text-slate-500">
+                                    Trip Duration: <span className="text-slate-400 font-semibold">{calculateDuration(ride.acceptedAt, ride.completedAt)}</span>
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </article>
                         ))

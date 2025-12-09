@@ -15,23 +15,36 @@ public class Ride {
     private String driverId;
     private String pickupLocation;
     private String dropLocation;
+    private Double distanceKm;  // Distance in kilometers
+    private Double fare;         // Total fare (base + distance cost)
+    private Double driverRevenue; // 75% of fare
+    private Double companyRevenue; // 25% of fare
     private String status; // REQUESTED / ACCEPTED / COMPLETED
 
     @CreatedDate
     private Instant createdAt;
+    private Instant acceptedAt;
+    private Instant completedAt;
 
     public Ride() {
     }
 
-    public Ride(String id, String userId, String driverId, String pickupLocation, String dropLocation, String status,
-            Instant createdAt) {
+    public Ride(String id, String userId, String driverId, String pickupLocation, String dropLocation,
+            Double distanceKm, Double fare, Double driverRevenue, Double companyRevenue, String status,
+            Instant createdAt, Instant acceptedAt, Instant completedAt) {
         this.id = id;
         this.userId = userId;
         this.driverId = driverId;
         this.pickupLocation = pickupLocation;
         this.dropLocation = dropLocation;
+        this.distanceKm = distanceKm;
+        this.fare = fare;
+        this.driverRevenue = driverRevenue;
+        this.companyRevenue = companyRevenue;
         this.status = status;
         this.createdAt = createdAt;
+        this.acceptedAt = acceptedAt;
+        this.completedAt = completedAt;
     }
 
     public String getId() {
@@ -74,6 +87,38 @@ public class Ride {
         this.dropLocation = dropLocation;
     }
 
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
+    }
+
+    public Double getFare() {
+        return fare;
+    }
+
+    public void setFare(Double fare) {
+        this.fare = fare;
+    }
+
+    public Double getDriverRevenue() {
+        return driverRevenue;
+    }
+
+    public void setDriverRevenue(Double driverRevenue) {
+        this.driverRevenue = driverRevenue;
+    }
+
+    public Double getCompanyRevenue() {
+        return companyRevenue;
+    }
+
+    public void setCompanyRevenue(Double companyRevenue) {
+        this.companyRevenue = companyRevenue;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -88,5 +133,21 @@ public class Ride {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(Instant acceptedAt) {
+        this.acceptedAt = acceptedAt;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(Instant completedAt) {
+        this.completedAt = completedAt;
     }
 }

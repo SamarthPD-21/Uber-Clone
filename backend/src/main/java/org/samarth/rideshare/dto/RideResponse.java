@@ -11,8 +11,14 @@ public class RideResponse {
     private String driverUsername;
     private String pickupLocation;
     private String dropLocation;
+    private Double distanceKm;
+    private Double fare;
+    private Double driverRevenue;
+    private Double companyRevenue;
     private String status;
     private Instant createdAt;
+    private Instant acceptedAt;
+    private Instant completedAt;
 
     public String getId() {
         return id;
@@ -70,6 +76,38 @@ public class RideResponse {
         this.dropLocation = dropLocation;
     }
 
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
+    }
+
+    public Double getFare() {
+        return fare;
+    }
+
+    public void setFare(Double fare) {
+        this.fare = fare;
+    }
+
+    public Double getDriverRevenue() {
+        return driverRevenue;
+    }
+
+    public void setDriverRevenue(Double driverRevenue) {
+        this.driverRevenue = driverRevenue;
+    }
+
+    public Double getCompanyRevenue() {
+        return companyRevenue;
+    }
+
+    public void setCompanyRevenue(Double companyRevenue) {
+        this.companyRevenue = companyRevenue;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -84,5 +122,21 @@ public class RideResponse {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(Instant acceptedAt) {
+        this.acceptedAt = acceptedAt;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(Instant completedAt) {
+        this.completedAt = completedAt;
     }
 }
