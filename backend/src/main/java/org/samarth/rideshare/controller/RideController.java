@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/rides")
+@RequestMapping("/api/v1/rides")
 @Validated
 public class RideController {
 
@@ -51,8 +51,8 @@ public class RideController {
      * /api/rides/pending
      */
     @GetMapping("/pending")
-    public ResponseEntity<List<RideResponse>> getPendingRides() {
-        return ResponseEntity.ok(rideService.getPendingRides());
+    public ResponseEntity<List<RideResponse>> getPendingRides(Principal principal) {
+        return ResponseEntity.ok(rideService.getPendingRides(principal.getName()));
     }
 
     /**

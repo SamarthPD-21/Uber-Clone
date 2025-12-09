@@ -2,7 +2,6 @@ package org.samarth.rideshare.service;
 
 import java.util.Optional;
 
-import org.samarth.rideshare.exception.NotFoundException;
 import org.samarth.rideshare.model.User;
 import org.samarth.rideshare.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,7 +29,7 @@ public class UserService implements UserDetailsService {
 
     public User getByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public Optional<User> findByUsername(String username) {
@@ -39,7 +38,7 @@ public class UserService implements UserDetailsService {
 
     public User getById(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Override

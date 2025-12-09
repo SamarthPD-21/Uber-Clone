@@ -17,6 +17,8 @@ public class User {
 
     private String role; // ROLE_USER or ROLE_DRIVER
 
+    private String vehicleType; // MOTO, AUTORIKSHAW, CAR (only for drivers)
+
     public User() {
     }
 
@@ -57,5 +59,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getVehicleType() {
+        return vehicleType;
+    }
+
+    public void setVehicleType(String vehicleType) {
+        this.vehicleType = vehicleType;
     }
 }

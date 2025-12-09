@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest, API_BASE_URL } from "@/lib/api";
-import type { AuthResponse, RideDto, UserRole } from "@/lib/types";
+import type { AuthResponse, RideDto, UserRole, VehicleType, UserProfile } from "@/lib/types";
 import { formatRelativeTime, formatDateTime, calculateDuration } from "@/lib/utils";
+import { VEHICLE_OPTIONS, getVehicleOption } from "@/lib/constants";
 
 type AuthMode = "register" | "login";
 
@@ -27,6 +28,7 @@ function AuthModal({
     username: "",
     password: "",
     role: "ROLE_USER" as UserRole,
+    vehicleType: undefined as VehicleType | undefined,
   });
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -180,7 +182,7 @@ function AuthModal({
                         ? "border-blue-400/60 bg-blue-500/15 text-white shadow-lg shadow-blue-500/20 scale-105"
                         : "border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5"
                     }`}
-                    onClick={() => setRegisterForm((prev) => ({ ...prev, role: option.role }))}
+                    onClick={() => setRegisterForm((prev) => ({ ...prev, role: option.role, vehicleType: undefined }))}
                   >
                     <div className="text-2xl mb-1">{option.icon}</div>
                     <p className="text-sm font-semibold">{option.label}</p>
@@ -188,6 +190,29 @@ function AuthModal({
                 ))}
               </div>
             </div>
+            {registerForm.role === "ROLE_DRIVER" && (
+              <div>
+                <label className="text-xs uppercase tracking-wider text-slate-400 mb-2 block">Select Your Vehicle</label>
+                <div className="grid gap-3 grid-cols-3">
+                  {VEHICLE_OPTIONS.map((vehicle) => (
+                    <button
+                      key={vehicle.type}
+                      type="button"
+                      className={`rounded-xl border px-3 py-3 text-center transition-all duration-200 ${
+                        registerForm.vehicleType === vehicle.type
+                          ? "border-green-400/60 bg-green-500/15 text-white shadow-lg shadow-green-500/20 scale-105"
+                          : "border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5"
+                      }`}
+                      onClick={() => setRegisterForm((prev) => ({ ...prev, vehicleType: vehicle.type }))}
+                    >
+                      <div className="text-2xl mb-1">{vehicle.icon}</div>
+                      <p className="text-xs font-semibold">{vehicle.label}</p>
+                      <p className="text-xs text-slate-400">₹{vehicle.basePrice}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
@@ -202,11 +227,97 @@ function AuthModal({
   );
 }
 
+// Profile Settings Modal Component
+function ProfileModal({
+  isOpen,
+  onClose,
+  currentVehicleType,
+  onUpdate,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  currentVehicleType?: VehicleType;
+  onUpdate: (vehicleType: VehicleType) => void;
+}) {
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>(currentVehicleType || "CAR");
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await onUpdate(selectedVehicle);
+      onClose();
+    } catch (error) {
+      // Error handled in parent
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+      <div className="card-surface w-full max-w-md p-8 relative animate-modal-slide-up shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-white transition-all duration-200 hover:rotate-90"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-white mb-2 gradient-text">Driver Settings</h2>
+          <p className="text-slate-400 text-sm">Select your vehicle type</p>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs uppercase tracking-wider text-slate-400 mb-3 block font-semibold">
+              Your Vehicle Type
+            </label>
+            <div className="grid gap-3 grid-cols-3">
+              {VEHICLE_OPTIONS.map((vehicle) => (
+                <button
+                  key={vehicle.type}
+                  type="button"
+                  className={`rounded-xl border px-3 py-4 text-center transition-all duration-200 ${
+                    selectedVehicle === vehicle.type
+                      ? "border-blue-400/60 bg-blue-500/15 text-white shadow-lg shadow-blue-500/20 scale-105"
+                      : "border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5"
+                  }`}
+                  onClick={() => setSelectedVehicle(vehicle.type)}
+                >
+                  <div className="text-3xl mb-2">{vehicle.icon}</div>
+                  <p className="text-xs font-semibold mb-1">{vehicle.label}</p>
+                  <p className="text-xs text-slate-400">{vehicle.capacity}P</p>
+                  <p className="text-xs text-emerald-400 font-semibold mt-1">₹{vehicle.basePrice} base</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 text-base font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+          >
+            {loading ? "Saving..." : "Save Vehicle Type"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [rideForm, setRideForm] = useState({ pickupLocation: "", dropLocation: "", distanceKm: "" });
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [rideForm, setRideForm] = useState({ pickupLocation: "", dropLocation: "", distanceKm: "", vehicleType: "CAR" as VehicleType });
   const [token, setToken] = useState<string | null>(null);
-  const [sessionUser, setSessionUser] = useState<{ username: string; role: UserRole } | null>(null);
+  const [sessionUser, setSessionUser] = useState<{ username: string; role: UserRole; vehicleType?: VehicleType } | null>(null);
   const [userRides, setUserRides] = useState<RideDto[]>([]);
   const [pendingRides, setPendingRides] = useState<RideDto[]>([]);
   const [acceptedByDriver, setAcceptedByDriver] = useState<RideDto[]>([]);
@@ -246,14 +357,14 @@ export default function Home() {
 
   const handleAuthSuccess = (response: AuthResponse) => {
     setToken(response.token);
-    setSessionUser({ username: response.username, role: response.role });
+    setSessionUser({ username: response.username, role: response.role, vehicleType: response.vehicleType });
     showBanner("success", `Welcome ${response.username}! You're signed in as ${response.role.replace("ROLE_", "")}`);
   };
 
   const refreshUserRides = useCallback(async () => {
     if (!token) return;
     try {
-      const rides = await apiRequest<RideDto[]>("/api/rides", { token });
+      const rides = await apiRequest<RideDto[]>("/api/v1/rides", { token });
       // Sort by most recent first (assuming newer rides have higher IDs or add timestamp)
       setUserRides(rides.reverse());
     } catch (error) {
@@ -265,7 +376,7 @@ export default function Home() {
   const refreshPendingRides = useCallback(async () => {
     if (!token) return;
     try {
-      const rides = await apiRequest<RideDto[]>("/api/rides/pending", { token });
+      const rides = await apiRequest<RideDto[]>("/api/v1/rides/pending", { token });
       // Sort by most recent first
       setPendingRides(rides.reverse());
     } catch (error) {
@@ -277,7 +388,7 @@ export default function Home() {
   const refreshDriverRides = useCallback(async () => {
     if (!token) return;
     try {
-      const rides = await apiRequest<RideDto[]>("/api/rides/driver/my-rides", { token });
+      const rides = await apiRequest<RideDto[]>("/api/v1/rides/driver/my-rides", { token });
       const accepted = rides.filter(ride => ride.status === "ACCEPTED");
       const completed = rides.filter(ride => ride.status === "COMPLETED");
       setAcceptedByDriver(accepted);
@@ -298,22 +409,46 @@ export default function Home() {
     }
   }, [token, sessionUser, refreshPendingRides, refreshUserRides, refreshDriverRides]);
 
+  const handleUpdateProfile = async (vehicleType: VehicleType) => {
+    if (!token) return;
+    try {
+      const profile = await apiRequest<UserProfile>("/api/v1/user/profile", {
+        method: "PUT",
+        body: { vehicleType },
+        token,
+      });
+      setSessionUser(prev => prev ? { ...prev, vehicleType: profile.vehicleType } : null);
+      showBanner("success", `Vehicle type updated to ${getVehicleOption(vehicleType)?.icon} ${getVehicleOption(vehicleType)?.label}`);
+      
+      // Refresh pending rides to show only relevant vehicle types
+      if (sessionUser?.role === "ROLE_DRIVER") {
+        await refreshPendingRides();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update profile";
+      showBanner("error", message);
+      throw error;
+    }
+  };
+
   const handleCreateRide = async () => {
     if (!token) return;
     setLoadingKey("create-ride");
     try {
-      await apiRequest<RideDto>("/api/rides", {
+      await apiRequest<RideDto>("/api/v1/rides", {
         method: "POST",
         body: {
           pickupLocation: rideForm.pickupLocation,
           dropLocation: rideForm.dropLocation,
           distanceKm: parseFloat(rideForm.distanceKm),
+          vehicleType: rideForm.vehicleType,
         },
         token,
       });
-      setRideForm({ pickupLocation: "", dropLocation: "", distanceKm: "" });
+      setRideForm({ pickupLocation: "", dropLocation: "", distanceKm: "", vehicleType: "CAR" });
       await refreshUserRides();
-      showBanner("success", "Ride requested successfully! Waiting for a driver.");
+      const vehicle = getVehicleOption(rideForm.vehicleType);
+      showBanner("success", `${vehicle?.icon} ${vehicle?.label} requested successfully! Waiting for a driver.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not create ride";
       showBanner("error", message);
@@ -326,7 +461,7 @@ export default function Home() {
     if (!token) return;
     setLoadingKey(`accept-${rideId}`);
     try {
-      const ride = await apiRequest<RideDto>(`/api/rides/accept/${rideId}`, {
+      const ride = await apiRequest<RideDto>(`/api/v1/rides/accept/${rideId}`, {
         method: "POST",
         token,
       });
@@ -345,7 +480,7 @@ export default function Home() {
     if (!token) return;
     setLoadingKey(`complete-${rideId}`);
     try {
-      const ride = await apiRequest<RideDto>(`/api/rides/complete/${rideId}`, {
+      const ride = await apiRequest<RideDto>(`/api/v1/rides/complete/${rideId}`, {
         method: "POST",
         token,
       });
@@ -385,6 +520,12 @@ export default function Home() {
   return (
     <>
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onSuccess={handleAuthSuccess} />
+      <ProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+        currentVehicleType={sessionUser?.vehicleType}
+        onUpdate={handleUpdateProfile}
+      />
 
       <div className="min-h-screen px-4 py-8 md:px-10">
         <div className="mx-auto max-w-7xl space-y-8">
@@ -421,6 +562,19 @@ export default function Home() {
                       <span className="rounded-full bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30 px-3 py-1.5 text-xs font-semibold text-emerald-200">
                         {sessionUser.role === "ROLE_USER" ? "🚗 Passenger" : "👨‍✈️ Driver"}
                       </span>
+                      {sessionUser.role === "ROLE_DRIVER" && sessionUser.vehicleType && (
+                        <span className="rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 px-3 py-1.5 text-xs font-semibold text-blue-200">
+                          {getVehicleOption(sessionUser.vehicleType)?.icon} {getVehicleOption(sessionUser.vehicleType)?.label}
+                        </span>
+                      )}
+                      {sessionUser.role === "ROLE_DRIVER" && (
+                        <button
+                          onClick={() => setShowProfileModal(true)}
+                          className="rounded-full bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white transition-all"
+                        >
+                          ⚙️ Settings
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -500,6 +654,27 @@ export default function Home() {
                         />
                       </div>
                       <div>
+                        <label className="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2 block">Select Vehicle Type</label>
+                        <div className="grid gap-3 grid-cols-3">
+                          {VEHICLE_OPTIONS.map((vehicle) => (
+                            <button
+                              key={vehicle.type}
+                              type="button"
+                              className={`rounded-xl border px-3 py-3 text-center transition-all duration-200 ${
+                                rideForm.vehicleType === vehicle.type
+                                  ? "border-blue-400/60 bg-blue-500/15 text-white shadow-lg shadow-blue-500/20 scale-105"
+                                  : "border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/5"
+                              }`}
+                              onClick={() => setRideForm((prev) => ({ ...prev, vehicleType: vehicle.type }))}
+                            >
+                              <div className="text-2xl mb-1">{vehicle.icon}</div>
+                              <p className="text-xs font-semibold">{vehicle.label}</p>
+                              <p className="text-xs text-slate-400">{vehicle.capacity}P • ₹{vehicle.basePrice}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
                         <label className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Distance (km)</label>
                         <input
                           type="number"
@@ -515,11 +690,15 @@ export default function Home() {
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-slate-300 font-medium">Estimated Fare:</span>
                               <span className="text-2xl font-bold text-emerald-200">
-                                ₹{(50 + parseFloat(rideForm.distanceKm) * 10).toFixed(2)}
+                                ₹{(() => {
+                                  const vehicle = getVehicleOption(rideForm.vehicleType);
+                                  const basePrice = vehicle?.basePrice || 50;
+                                  return (basePrice + parseFloat(rideForm.distanceKm) * 10).toFixed(2);
+                                })()}
                               </span>
                             </div>
                             <div className="mt-2 text-xs text-slate-400 font-medium">
-                              Base ₹50 + ₹10/km × {parseFloat(rideForm.distanceKm).toFixed(1)} km
+                              Base ₹{getVehicleOption(rideForm.vehicleType)?.basePrice || 50} + ₹10/km × {parseFloat(rideForm.distanceKm).toFixed(1)} km
                             </div>
                           </div>
                         )}
@@ -604,9 +783,19 @@ export default function Home() {
                                 <span className="text-lg font-bold text-emerald-200">₹{ride.fare.toFixed(2)}</span>
                               )}
                             </div>
-                            <p className="text-base font-semibold text-white mb-1">
-                              {ride.pickupLocation} → {ride.dropLocation}
-                            </p>
+                            <div className="flex items-center gap-2 mb-2">
+                              {ride.vehicleType && (
+                                <span className="text-xl">{getVehicleOption(ride.vehicleType)?.icon}</span>
+                              )}
+                              <p className="text-base font-semibold text-white">
+                                {ride.pickupLocation} → {ride.dropLocation}
+                              </p>
+                            </div>
+                            {ride.vehicleType && (
+                              <p className="text-xs text-blue-300 font-medium mb-1">
+                                {getVehicleOption(ride.vehicleType)?.label} • {getVehicleOption(ride.vehicleType)?.capacity}P
+                              </p>
+                            )}
                             {ride.distanceKm && (
                               <p className="text-xs text-slate-400">Distance: {ride.distanceKm.toFixed(1)} km</p>
                             )}
@@ -684,9 +873,19 @@ export default function Home() {
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div>
-                                <p className="text-base font-semibold text-white">
-                                  {ride.pickupLocation} → {ride.dropLocation}
-                                </p>
+                                <div className="flex items-center gap-2 mb-1">
+                                  {ride.vehicleType && (
+                                    <span className="text-xl">{getVehicleOption(ride.vehicleType)?.icon}</span>
+                                  )}
+                                  <p className="text-base font-semibold text-white">
+                                    {ride.pickupLocation} → {ride.dropLocation}
+                                  </p>
+                                </div>
+                                {ride.vehicleType && (
+                                  <p className="text-xs text-blue-300 font-medium mb-1">
+                                    {getVehicleOption(ride.vehicleType)?.label}
+                                  </p>
+                                )}
                                 {ride.distanceKm && (
                                   <p className="text-xs text-slate-400 mt-1">Distance: {ride.distanceKm.toFixed(1)} km</p>
                                 )}
@@ -746,9 +945,19 @@ export default function Home() {
                             key={ride.id}
                             className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 hover:bg-white/10 transition"
                           >
-                            <p className="text-base font-semibold text-white mb-1">
-                              {ride.pickupLocation} → {ride.dropLocation}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                              {ride.vehicleType && (
+                                <span className="text-xl">{getVehicleOption(ride.vehicleType)?.icon}</span>
+                              )}
+                              <p className="text-base font-semibold text-white">
+                                {ride.pickupLocation} → {ride.dropLocation}
+                              </p>
+                            </div>
+                            {ride.vehicleType && (
+                              <p className="text-xs text-blue-300 font-medium mb-1">
+                                {getVehicleOption(ride.vehicleType)?.label}
+                              </p>
+                            )}
                             {ride.passengerUsername && (
                               <p className="text-xs text-slate-400">Passenger: {ride.passengerUsername}</p>
                             )}
@@ -842,10 +1051,18 @@ export default function Home() {
                                   <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200">
                                     ✓ COMPLETED
                                   </span>
+                                  {ride.vehicleType && (
+                                    <span className="text-lg">{getVehicleOption(ride.vehicleType)?.icon}</span>
+                                  )}
                                 </div>
                                 <p className="text-base font-semibold text-white mb-1">
                                   {ride.pickupLocation} → {ride.dropLocation}
                                 </p>
+                                {ride.vehicleType && (
+                                  <p className="text-xs text-blue-300 font-medium mb-1">
+                                    {getVehicleOption(ride.vehicleType)?.label}
+                                  </p>
+                                )}
                                 {ride.distanceKm && (
                                   <p className="text-xs text-slate-400">Distance: {ride.distanceKm.toFixed(1)} km</p>
                                 )}

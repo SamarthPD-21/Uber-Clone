@@ -5,6 +5,7 @@ public class AuthResponse {
     private String token;
     private String username;
     private String role;
+    private String vehicleType;
 
     public AuthResponse() {
     }
@@ -17,6 +18,13 @@ public class AuthResponse {
         this.token = token;
         this.username = username;
         this.role = role;
+    }
+
+    public AuthResponse(String token, String username, String role, String vehicleType) {
+        this.token = token;
+        this.username = username;
+        this.role = role;
+        this.vehicleType = vehicleType;
     }
 
     public String getToken() {
@@ -41,5 +49,13 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getVehicleType() {
+        return vehicleType;
+    }
+
+    public void setVehicleType(String vehicleType) {
+        this.vehicleType = vehicleType;
     }
 }
