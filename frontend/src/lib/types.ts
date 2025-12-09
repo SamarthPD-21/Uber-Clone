@@ -6,12 +6,18 @@ export interface RideDto {
   id: string;
   pickupLocation: string;
   dropLocation: string;
+  distanceKm?: number;
+  fare?: number;
+  driverRevenue?: number;
+  companyRevenue?: number;
   status: RideStatus;
   userId: string;
   driverId?: string | null;
   passengerUsername?: string;
   driverUsername?: string;
   createdAt?: string;
+  acceptedAt?: string;
+  completedAt?: string;
 }
 
 export interface AuthResponse {

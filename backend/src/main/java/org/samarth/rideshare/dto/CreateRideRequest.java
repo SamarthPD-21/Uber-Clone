@@ -1,6 +1,8 @@
 package org.samarth.rideshare.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public class CreateRideRequest {
 
@@ -9,6 +11,10 @@ public class CreateRideRequest {
 
     @NotBlank(message = "Drop is required")
     private String dropLocation;
+
+    @NotNull(message = "Distance is required")
+    @Positive(message = "Distance must be positive")
+    private Double distanceKm;
 
     public String getPickupLocation() {
         return pickupLocation;
@@ -24,5 +30,13 @@ public class CreateRideRequest {
 
     public void setDropLocation(String dropLocation) {
         this.dropLocation = dropLocation;
+    }
+
+    public Double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(Double distanceKm) {
+        this.distanceKm = distanceKm;
     }
 }

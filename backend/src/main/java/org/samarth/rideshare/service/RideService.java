@@ -1,5 +1,6 @@
 package org.samarth.rideshare.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,8 +11,10 @@ import org.samarth.rideshare.exception.NotFoundException;
 import org.samarth.rideshare.model.Ride;
 import org.samarth.rideshare.model.User;
 import org.samarth.rideshare.repository.RideRepository;
+import org.samarth.rideshare.util.PricingConfig;
 import org.samarth.rideshare.util.RideStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RideService {
@@ -30,10 +33,17 @@ public class RideService {
             throw new BadRequestException("Only passengers can request rides");
         }
 
+        // Calculate pricing based on distance
+        PricingConfig.PricingDetails pricing = PricingConfig.calculatePricing(request.getDistanceKm());
+
         Ride ride = new Ride();
         ride.setUserId(passenger.getId());
         ride.setPickupLocation(request.getPickupLocation());
         ride.setDropLocation(request.getDropLocation());
+        ride.setDistanceKm(pricing.getDistanceKm());
+        ride.setFare(pricing.getTotalFare());
+        ride.setDriverRevenue(pricing.getDriverRevenue());
+        ride.setCompanyRevenue(pricing.getCompanyRevenue());
         ride.setStatus(RideStatus.REQUESTED);
 
         return toResponse(rideRepository.save(ride));
@@ -54,10 +64,28 @@ public class RideService {
                 .collect(Collectors.toList());
     }
 
+    public List<RideResponse> getDriverRides(String driverUsername) {
+        User driver = userService.getByUsername(driverUsername);
+        if (!"ROLE_DRIVER".equals(driver.getRole())) {
+            throw new BadRequestException("Only drivers can access this endpoint");
+        }
+        return rideRepository.findByDriverId(driver.getId())
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public RideResponse acceptRide(String rideId, String driverUsername) {
         User driver = userService.getByUsername(driverUsername);
         if (!"ROLE_DRIVER".equals(driver.getRole())) {
             throw new BadRequestException("Only drivers can accept rides");
+        }
+
+        // Check if driver already has an active (accepted) ride
+        List<Ride> activeRides = rideRepository.findByDriverIdAndStatus(driver.getId(), RideStatus.ACCEPTED);
+        if (!activeRides.isEmpty()) {
+            throw new BadRequestException("You already have an active ride. Please complete it before accepting a new one.");
         }
 
         Ride ride = getRide(rideId);
@@ -67,6 +95,7 @@ public class RideService {
 
         ride.setDriverId(driver.getId());
         ride.setStatus(RideStatus.ACCEPTED);
+        ride.setAcceptedAt(Instant.now());
         return toResponse(rideRepository.save(ride));
     }
 
@@ -86,6 +115,7 @@ public class RideService {
         }
 
         ride.setStatus(RideStatus.COMPLETED);
+        ride.setCompletedAt(Instant.now());
         return toResponse(rideRepository.save(ride));
     }
 
@@ -101,8 +131,14 @@ public class RideService {
         response.setDriverId(ride.getDriverId());
         response.setPickupLocation(ride.getPickupLocation());
         response.setDropLocation(ride.getDropLocation());
+        response.setDistanceKm(ride.getDistanceKm());
+        response.setFare(ride.getFare());
+        response.setDriverRevenue(ride.getDriverRevenue());
+        response.setCompanyRevenue(ride.getCompanyRevenue());
         response.setStatus(ride.getStatus());
         response.setCreatedAt(ride.getCreatedAt());
+        response.setAcceptedAt(ride.getAcceptedAt());
+        response.setCompletedAt(ride.getCompletedAt());
 
         // Add usernames for better display
         try {
