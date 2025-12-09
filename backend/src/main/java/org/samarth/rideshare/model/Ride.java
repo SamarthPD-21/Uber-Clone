@@ -15,6 +15,8 @@ public class Ride {
     private String driverId;
     private String pickupLocation;
     private String dropLocation;
+    private String vehicleType; // MOTO, AUTORIKSHAW, CAR
+    private Double basePrice;    // Base price based on vehicle type
     private Double distanceKm;  // Distance in kilometers
     private Double fare;         // Total fare (base + distance cost)
     private Double driverRevenue; // 75% of fare
@@ -30,13 +32,15 @@ public class Ride {
     }
 
     public Ride(String id, String userId, String driverId, String pickupLocation, String dropLocation,
-            Double distanceKm, Double fare, Double driverRevenue, Double companyRevenue, String status,
-            Instant createdAt, Instant acceptedAt, Instant completedAt) {
+            String vehicleType, Double basePrice, Double distanceKm, Double fare, Double driverRevenue,
+            Double companyRevenue, String status, Instant createdAt, Instant acceptedAt, Instant completedAt) {
         this.id = id;
         this.userId = userId;
         this.driverId = driverId;
         this.pickupLocation = pickupLocation;
         this.dropLocation = dropLocation;
+        this.vehicleType = vehicleType;
+        this.basePrice = basePrice;
         this.distanceKm = distanceKm;
         this.fare = fare;
         this.driverRevenue = driverRevenue;
@@ -85,6 +89,22 @@ public class Ride {
 
     public void setDropLocation(String dropLocation) {
         this.dropLocation = dropLocation;
+    }
+
+    public String getVehicleType() {
+        return vehicleType;
+    }
+
+    public void setVehicleType(String vehicleType) {
+        this.vehicleType = vehicleType;
+    }
+
+    public Double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(Double basePrice) {
+        this.basePrice = basePrice;
     }
 
     public Double getDistanceKm() {

@@ -23,8 +23,8 @@ public class DriverRideController {
     }
 
     @GetMapping("/rides/requests")
-    public ResponseEntity<List<RideResponse>> getPendingRides() {
-        return ResponseEntity.ok(rideService.getPendingRides());
+    public ResponseEntity<List<RideResponse>> getPendingRides(Principal principal) {
+        return ResponseEntity.ok(rideService.getPendingRides(principal.getName()));
     }
 
     @PostMapping("/rides/{rideId}/accept")

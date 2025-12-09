@@ -11,6 +11,8 @@ public class RideResponse {
     private String driverUsername;
     private String pickupLocation;
     private String dropLocation;
+    private String vehicleType;
+    private Double basePrice;
     private Double distanceKm;
     private Double fare;
     private Double driverRevenue;
@@ -74,6 +76,22 @@ public class RideResponse {
 
     public void setDropLocation(String dropLocation) {
         this.dropLocation = dropLocation;
+    }
+
+    public String getVehicleType() {
+        return vehicleType;
+    }
+
+    public void setVehicleType(String vehicleType) {
+        this.vehicleType = vehicleType;
+    }
+
+    public Double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(Double basePrice) {
+        this.basePrice = basePrice;
     }
 
     public Double getDistanceKm() {

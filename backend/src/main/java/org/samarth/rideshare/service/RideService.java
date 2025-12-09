@@ -13,6 +13,7 @@ import org.samarth.rideshare.model.User;
 import org.samarth.rideshare.repository.RideRepository;
 import org.samarth.rideshare.util.PricingConfig;
 import org.samarth.rideshare.util.RideStatus;
+import org.samarth.rideshare.util.VehicleType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,17 +34,30 @@ public class RideService {
             throw new BadRequestException("Only passengers can request rides");
         }
 
-        // Calculate pricing based on distance
+        // Validate vehicle type
+        if (!VehicleType.isValid(request.getVehicleType())) {
+            throw new BadRequestException("Invalid vehicle type");
+        }
+
+        // Get base price for vehicle type
+        double basePrice = VehicleType.getBasePrice(request.getVehicleType());
+
+        // Calculate pricing based on distance and vehicle type
         PricingConfig.PricingDetails pricing = PricingConfig.calculatePricing(request.getDistanceKm());
+        double totalFare = basePrice + pricing.getTotalFare();
+        double driverRevenue = totalFare * 0.75;
+        double companyRevenue = totalFare * 0.25;
 
         Ride ride = new Ride();
         ride.setUserId(passenger.getId());
         ride.setPickupLocation(request.getPickupLocation());
         ride.setDropLocation(request.getDropLocation());
+        ride.setVehicleType(request.getVehicleType());
+        ride.setBasePrice(basePrice);
         ride.setDistanceKm(pricing.getDistanceKm());
-        ride.setFare(pricing.getTotalFare());
-        ride.setDriverRevenue(pricing.getDriverRevenue());
-        ride.setCompanyRevenue(pricing.getCompanyRevenue());
+        ride.setFare(totalFare);
+        ride.setDriverRevenue(driverRevenue);
+        ride.setCompanyRevenue(companyRevenue);
         ride.setStatus(RideStatus.REQUESTED);
 
         return toResponse(rideRepository.save(ride));
@@ -57,7 +71,22 @@ public class RideService {
                 .collect(Collectors.toList());
     }
 
-    public List<RideResponse> getPendingRides() {
+    public List<RideResponse> getPendingRides(String driverUsername) {
+        User driver = userService.getByUsername(driverUsername);
+        if (!"ROLE_DRIVER".equals(driver.getRole())) {
+            throw new BadRequestException("Only drivers can access pending rides");
+        }
+
+        // Filter by driver's vehicle type if set
+        String vehicleType = driver.getVehicleType();
+        if (vehicleType != null && !vehicleType.isEmpty()) {
+            return rideRepository.findByStatusAndVehicleType(RideStatus.REQUESTED, vehicleType)
+                    .stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        // If no vehicle type set, return all pending rides
         return rideRepository.findByStatus(RideStatus.REQUESTED)
                 .stream()
                 .map(this::toResponse)
@@ -91,6 +120,13 @@ public class RideService {
         Ride ride = getRide(rideId);
         if (!RideStatus.REQUESTED.equals(ride.getStatus())) {
             throw new BadRequestException("Ride is not available for acceptance");
+        }
+
+        // Check if driver's vehicle type matches the ride's vehicle type
+        String driverVehicleType = driver.getVehicleType();
+        if (driverVehicleType != null && !driverVehicleType.isEmpty()
+                && !driverVehicleType.equals(ride.getVehicleType())) {
+            throw new BadRequestException("This ride requires a " + ride.getVehicleType() + " but you have a " + driverVehicleType);
         }
 
         ride.setDriverId(driver.getId());
@@ -131,6 +167,8 @@ public class RideService {
         response.setDriverId(ride.getDriverId());
         response.setPickupLocation(ride.getPickupLocation());
         response.setDropLocation(ride.getDropLocation());
+        response.setVehicleType(ride.getVehicleType());
+        response.setBasePrice(ride.getBasePrice());
         response.setDistanceKm(ride.getDistanceKm());
         response.setFare(ride.getFare());
         response.setDriverRevenue(ride.getDriverRevenue());

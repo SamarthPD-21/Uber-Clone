@@ -45,10 +45,16 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
+
+        // Set vehicle type for drivers
+        if (role.equals("ROLE_DRIVER") && request.getVehicleType() != null) {
+            user.setVehicleType(request.getVehicleType());
+        }
+
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getUsername(), user.getRole());
-        return new AuthResponse(token, user.getUsername(), user.getRole());
+        return new AuthResponse(token, user.getUsername(), user.getRole(), user.getVehicleType());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -58,6 +64,6 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new BadRequestException("Invalid credentials"));
         String token = jwtService.generateToken(user.getUsername(), user.getRole());
-        return new AuthResponse(token, user.getUsername(), user.getRole());
+        return new AuthResponse(token, user.getUsername(), user.getRole(), user.getVehicleType());
     }
 }

@@ -1,6 +1,15 @@
-# 🚗 RideShare Platform
+# 🚗 RideShare Platform V2
 
-A full-stack ride-sharing application built with Spring Boot, MongoDB, JWT authentication, and Next.js.
+A full-stack ride-sharing application built with Spring Boot, MongoDB, JWT authentication, and Next.js with comprehensive timestamp tracking and enhanced UI/UX.
+
+## ✨ What's New in V2
+
+- **📅 Comprehensive Timestamp Tracking** - Track when rides are requested, accepted, and completed
+- **⏱️ Trip Duration Calculation** - Automatic calculation of ride duration from acceptance to completion
+- **🎨 Enhanced Scrollbar Design** - Beautiful gradient scrollbar with smooth hover effects
+- **📊 Smart Ride Ordering** - Most recent rides appear first across all views
+- **⏰ Relative Time Display** - User-friendly time formatting ("2h ago", "Just now", etc.)
+- **📈 Complete Ride Timeline** - Full visibility into the entire ride lifecycle
 
 ## 📋 Features
 
@@ -8,6 +17,7 @@ A full-stack ride-sharing application built with Spring Boot, MongoDB, JWT authe
 - **JWT Authentication** - Secure token-based authentication with BCrypt password encoding
 - **Role-Based Access Control** - Separate permissions for Passengers (ROLE_USER) and Drivers (ROLE_DRIVER)
 - **Ride Management** - Complete CRUD operations for ride requests
+- **Timestamp Tracking** - Automatic tracking of `createdAt`, `acceptedAt`, and `completedAt` timestamps
 - **Input Validation** - Jakarta validation for all DTOs
 - **Global Exception Handling** - Centralized error handling with custom exceptions
 - **MongoDB Integration** - NoSQL database with Spring Data MongoDB
@@ -16,6 +26,11 @@ A full-stack ride-sharing application built with Spring Boot, MongoDB, JWT authe
 - **Modern UI/UX** - Beautiful glassmorphic design with dark theme
 - **Modal Authentication** - Login/Signup in a popup modal instead of separate pages
 - **Role-Based Views** - Different interfaces for Passengers and Drivers
+- **Timestamp Display** - Show ride request time, acceptance time, and completion time
+- **Duration Calculation** - Calculate and display trip duration automatically
+- **Smart Time Formatting** - Relative time ("2h ago") and absolute datetime formatting
+- **Enhanced Scrollbar** - Gradient-styled scrollbar with smooth hover effects
+- **Optimized Ride Ordering** - Newest rides displayed first for better UX
 - **Real-Time Updates** - Refresh functionality for rides and requests
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 
@@ -38,12 +53,13 @@ demo/src/main/java/org/samarth/rideshare/
 ```
 frontend/src/
 ├── app/            # Next.js app directory
-│   ├── page.tsx    # Main application with modal auth
+│   ├── page.tsx    # Main application with modal auth & timestamps
 │   ├── layout.tsx  # Root layout
-│   └── globals.css # Global styles
+│   └── globals.css # Global styles with enhanced scrollbar
 └── lib/            # Shared utilities
     ├── api.ts      # API client
-    └── types.ts    # TypeScript interfaces
+    ├── types.ts    # TypeScript interfaces with timestamp fields
+    └── utils.ts    # Utility functions (time formatting, duration calc)
 ```
 
 ## 📡 API Endpoints
@@ -170,12 +186,16 @@ curl -X POST http://localhost:8081/api/v1/rides \
 3. **Create accounts** for both a Passenger and a Driver
 4. **As Passenger:**
    - Request a ride with pickup and drop locations
-   - View your ride history
+   - View your ride history with timestamps
+   - See when rides were requested, accepted, and completed
+   - View trip duration for completed rides
    - Complete accepted rides
 5. **As Driver:**
-   - View pending ride requests
+   - View pending ride requests with request time
+   - See active rides with acceptance time
    - Accept available rides
    - Complete rides you've accepted
+   - View completed rides with full timeline and trip duration
 
 ## 📦 Dependencies
 
@@ -222,12 +242,15 @@ curl -X POST http://localhost:8081/api/v1/rides \
   "pickupLocation": "string",
   "dropLocation": "string",
   "status": "REQUESTED | ACCEPTED | COMPLETED",
-  "createdAt": "timestamp"
+  "createdAt": "timestamp",      // When ride was requested
+  "acceptedAt": "timestamp",     // When driver accepted (V2)
+  "completedAt": "timestamp"     // When ride was completed (V2)
 }
 ```
 
 ## 🎯 Assignment Requirements Checklist
 
+### Core Requirements
 - ✅ Complete functioning API
 - ✅ Proper folder structure
 - ✅ DTOs with validation (@NotBlank, @Size, @Valid)
@@ -240,8 +263,31 @@ curl -X POST http://localhost:8081/api/v1/rides \
 - ✅ Modern frontend with modal authentication
 - ✅ Comprehensive README
 
+### V2 Enhancements
+- ✅ Timestamp tracking (createdAt, acceptedAt, completedAt)
+- ✅ Trip duration calculation
+- ✅ Relative time formatting utilities
+- ✅ Enhanced scrollbar design with gradients
+- ✅ Smart ride ordering (newest first)
+- ✅ Complete ride lifecycle visibility
+- ✅ Improved driver dashboard with timeline view
+
 ## 🌟 Additional Features
 
+### V2 Enhancements
+- **Complete Timestamp Lifecycle**: Track and display when rides are requested, accepted, and completed
+- **Trip Duration Display**: Automatic calculation showing "Trip took: 45 minutes" for completed rides
+- **Smart Time Formatting**: 
+  - Relative time for recent events ("2h ago", "Just now", "5m ago")
+  - Full datetime for older events
+- **Enhanced Visual Design**: Gradient scrollbar with blue-purple theme matching the app aesthetic
+- **Intelligent Data Ordering**: Newest rides appear first across all views (passenger & driver)
+- **Comprehensive Driver Dashboard**: 
+  - Pending requests with request time
+  - Active rides with acceptance time
+  - Completed rides with full timeline and duration
+
+### Core Features
 - **Enhanced UI/UX**: Modal-based authentication instead of separate pages
 - **User Profile Display**: Shows username and role in header
 - **Better Role Separation**: Distinct views for passengers and drivers

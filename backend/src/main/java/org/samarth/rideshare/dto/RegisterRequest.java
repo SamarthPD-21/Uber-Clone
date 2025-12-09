@@ -18,6 +18,9 @@ public class RegisterRequest {
     @Pattern(regexp = "USER|DRIVER|ROLE_USER|ROLE_DRIVER", message = "Role must be USER, DRIVER, ROLE_USER or ROLE_DRIVER")
     private String role;
 
+    @Pattern(regexp = "MOTO|AUTORIKSHAW|CAR", message = "Vehicle type must be MOTO, AUTORIKSHAW or CAR")
+    private String vehicleType; // Only required for DRIVER role
+
     public String getUsername() {
         return username;
     }
@@ -40,5 +43,13 @@ public class RegisterRequest {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getVehicleType() {
+        return vehicleType;
+    }
+
+    public void setVehicleType(String vehicleType) {
+        this.vehicleType = vehicleType;
     }
 }
