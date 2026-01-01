@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081";
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8081";
+
+// Ensure we always hit an absolute backend URL; avoid relative requests against the frontend host
+const API_BASE_URL = normalizeBaseUrl(rawBaseUrl);
 
 type RequestOptions = {
   method?: string;
@@ -45,7 +48,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${API_BASE_URL}${normalizePath(path)}` , {
       method: options.method ?? "GET",
       headers,
       cache: "no-store",
@@ -68,6 +71,17 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
     throw new Error("Network error occurred");
   }
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim();
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  return withProtocol.endsWith("/") ? withProtocol.slice(0, -1) : withProtocol;
+}
+
+function normalizePath(path: string): string {
+  if (!path) return "/";
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
 export { API_BASE_URL };
