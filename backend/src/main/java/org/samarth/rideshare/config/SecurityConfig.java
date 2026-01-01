@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/error").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/rides").hasRole("USER")
                 .requestMatchers("/api/v1/user/profile").hasAnyRole("USER", "DRIVER")
